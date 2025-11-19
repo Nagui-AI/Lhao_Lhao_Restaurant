@@ -158,7 +158,7 @@
             </div>
 
             <!-- Conditions Input Area (Toggled by toggleConditionsModal) -->
-            <div id="conditionsModalContainer" class="toggle-container text-sm text-gray-300 bg-gray-900 rounded-lg mt-4">
+            <div id="conditionsModalContainer" class="toggle-container text-sm text-gray-300 bg-gray-900 rounded-lg mt-4 hidden">
                  <label for="noDeliveryDates" class="block text-xs font-medium text-gray-400 mb-1">วันที่ห้ามส่งสินค้า (DD-MM-YYYY คั่นด้วยคอมม่า)</label>
                  <textarea id="noDeliveryDates" onchange="calculateReorder()" rows="3" class="w-full p-2 dark-input rounded-lg text-xs" placeholder="ตัวอย่าง: 25-12-2025, 31-12-2025, 01-01-2026"></textarea>
                  <p class="mt-2 text-red-400 text-xs hidden" id="dateInputError"></p>
@@ -166,7 +166,7 @@
             </div>
             
             <!-- Details Container (Toggled by toggleDetails) -->
-            <div id="detailMessageContainer" class="toggle-container text-sm text-gray-300 bg-gray-900 rounded-lg">
+            <div id="detailMessageContainer" class="toggle-container text-sm text-gray-300 bg-gray-900 rounded-lg hidden">
                 <p id="detailMessage"></p>
             </div>
 
@@ -351,50 +351,44 @@
 
         /**
          * สลับการแสดงผลของกล่องข้อความรายละเอียด และเปลี่ยนข้อความบนปุ่ม
+         * @param {boolean} [forceClose=false] - If true, forces the container to close.
          */
-        function toggleDetails() {
+        function toggleDetails(forceClose = false) {
             const container = document.getElementById('detailMessageContainer');
             const button = document.getElementById('toggleDetailsBtn');
             const conditionsContainer = document.getElementById('conditionsModalContainer');
-            const conditionsButton = document.getElementById('toggleConditionsBtn');
 
-            // Ensure conditions modal is closed when opening details
-            if (conditionsContainer.classList.contains('active')) {
-                toggleConditionsModal(true); // Force close conditions
-            }
-            
-            if (container.classList.contains('hidden') || !container.classList.contains('active')) {
-                // Show with animation
-                container.classList.remove('hidden');
-                setTimeout(() => {
-                    container.classList.add('active');
-                }, 10); // Short delay for CSS transition
-                button.textContent = 'ซ่อนรายละเอียด';
-            } else {
+            if (forceClose || container.classList.contains('active')) {
                 // Hide with animation
                 container.classList.remove('active');
                 button.textContent = 'รายละเอียดเพิ่มเติม';
                 setTimeout(() => {
                     container.classList.add('hidden');
                 }, 300); // Wait for transition to finish
+            } else {
+                // Ensure conditions modal is closed when opening details
+                if (conditionsContainer.classList.contains('active')) {
+                    toggleConditionsModal(true); // Force close conditions
+                }
+                
+                // Show with animation
+                container.classList.remove('hidden');
+                setTimeout(() => {
+                    container.classList.add('active');
+                }, 10); // Short delay for CSS transition
+                button.textContent = 'ซ่อนรายละเอียด';
             }
         }
         
         /**
          * สลับการแสดงผลของกล่องข้อความเงื่อนไข และเปลี่ยนข้อความบนปุ่ม
-         * @param {boolean} forceClose - Forces the modal to close.
+         * @param {boolean} [forceClose=false] - If true, forces the container to close.
          */
         function toggleConditionsModal(forceClose = false) {
             const container = document.getElementById('conditionsModalContainer');
             const button = document.getElementById('toggleConditionsBtn');
             const detailsContainer = document.getElementById('detailMessageContainer');
-            const detailsButton = document.getElementById('toggleDetailsBtn');
             
-            // Ensure details container is closed when opening conditions
-            if (detailsContainer.classList.contains('active')) {
-                toggleDetails(true); // Force close details
-            }
-
             if (forceClose || container.classList.contains('active')) {
                 // Hide with animation
                 container.classList.remove('active');
@@ -403,6 +397,11 @@
                     container.classList.add('hidden');
                 }, 300); // Wait for transition to finish
             } else {
+                // Ensure details container is closed when opening conditions
+                if (detailsContainer.classList.contains('active')) {
+                    toggleDetails(true); // Force close details
+                }
+
                 // Show with animation
                 container.classList.remove('hidden');
                 setTimeout(() => {
@@ -648,26 +647,28 @@
             // 14. แสดงผลรายละเอียดและจัดการปุ่ม/คำเตือน
             document.getElementById('detailMessage').innerHTML = detailMessage;
             
-            // Reset detail/conditions visibility (keep them closed after calculation)
-            document.getElementById('detailMessageContainer').classList.remove('active');
-            document.getElementById('detailMessageContainer').classList.add('hidden'); 
-            document.getElementById('toggleDetailsBtn').textContent = 'รายละเอียดเพิ่มเติม'; 
+            // Reset detail/conditions visibility (force close both after calculation)
+            // Use forceClose=true in the function calls
+            toggleDetails(true);
             
-            // Don't auto-close conditions if there was a date parsing error, so user can fix it
+            // Only force close conditions modal if there's NO date parsing error, so user can fix it
             if (document.getElementById('dateInputError').classList.contains('hidden')) {
-                document.getElementById('conditionsModalContainer').classList.remove('active');
-                document.getElementById('conditionsModalContainer').classList.add('hidden');
-                document.getElementById('toggleConditionsBtn').textContent = 'เพิ่ม/แก้ไข เงื่อนไข';
+                toggleConditionsModal(true);
+            } else {
+                // If there's an error, force open the conditions modal so user can see and fix
+                toggleConditionsModal(false); 
             }
-
 
             // ตรวจสอบสถานะสต็อกและแสดงคำเตือนเพิ่มเติม
             if (totalMonthCurrent < 1.0) {
                  errorMessage.innerHTML = "คำเตือน: สต็อกปัจจุบันต่ำกว่า 1 เดือน! ควรเร่งสั่งซื้อโดยด่วน";
                  errorMessage.classList.remove('hidden');
             } else if (orderQty === 0) {
-                 errorMessage.innerHTML = "ข้อมูล: ไม่ต้องสั่งซื้อในตอนนี้ สต็อกปัจจุบันเพียงพอต่อความต้องการถึงวันส่งมอบสินค้าครั้งถัดไป";
-                 errorMessage.classList.remove('hidden');
+                 // Only show 'sufficient stock' message if no date parsing error is present
+                 if (document.getElementById('dateInputError').classList.contains('hidden')) {
+                    errorMessage.innerHTML = "ข้อมูล: ไม่ต้องสั่งซื้อในตอนนี้ สต็อกปัจจุบันเพียงพอต่อความต้องการถึงวันส่งมอบสินค้าครั้งถัดไป";
+                    errorMessage.classList.remove('hidden');
+                 }
             } else {
                  // Only hide if there's no date parsing error
                  if (document.getElementById('dateInputError').classList.contains('hidden')) {
