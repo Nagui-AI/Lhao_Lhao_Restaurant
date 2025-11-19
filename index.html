@@ -147,7 +147,7 @@
                 <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <!-- NEW BUTTON: Add/Edit Conditions -->
                     <button id="toggleConditionsBtn" onclick="toggleConditionsModal()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors flex-shrink-0 w-full sm:w-auto hidden">
-                        เพิ่ม/แก้ไข เงื่อนไข
+                        เพิ่มเงื่อนไข
                     </button>
                     
                     <!-- Details Button -->
@@ -392,7 +392,7 @@
             if (forceClose || container.classList.contains('active')) {
                 // Hide with animation
                 container.classList.remove('active');
-                button.textContent = 'เพิ่ม/แก้ไข เงื่อนไข';
+                button.textContent = 'เพิ่มเงื่อนไข';
                 setTimeout(() => {
                     container.classList.add('hidden');
                 }, 300); // Wait for transition to finish
