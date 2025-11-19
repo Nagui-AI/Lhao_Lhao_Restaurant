@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องมือคำนวณจุดสั่งซื้อสินค้าคงคลัง</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Noto+Sans+Thai:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+            background-color: #171717; /* Very dark background */
+            padding: 20px;
+            min-height: 100vh;
+            color: #ffffff; /* Default text color set to white */
+        }
+
+        /* Gradient for the main button */
+        .deep-blue-purple-gradient {
+            /* Dark Gray Metallic Gradient */
+            background: linear-gradient(135deg, #374151, #1F2937); 
+        }
+
+        /* Style for dark mode input fields */
+        .dark-input {
+            background-color: #1f2937; /* Darker input background */
+            border-color: #374151; /* Gray border */
+            color: #ffffff;
+            transition: all 0.2s;
+        }
+        .dark-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.5); 
+            border-color: #6b7280; 
+        }
+        
+        /* Custom class for displaying error/warning prominently */
+        .warning-box {
+            background-color: #3c1e1e; /* Dark Red Background */
+            color: #fca5a5; /* Light Red Text */
+            border: 1px solid #dc2626; /* Red Border */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Ensures smooth transition for details toggle */
+        #detailMessageContainer {
+            transition: all 0.3s ease-in-out;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+        }
+
+        #detailMessageContainer.active {
+            max-height: 500px; /* Large enough value to show content */
+            opacity: 1;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- INVENTORY CALCULATION SECTION -->
+    <div class="max-w-4xl mx-auto mt-10 bg-gray-900 text-white p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-700"> 
+        <h2 class="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">
+            เครื่องมือคำนวณการสั่งซื้อสินค้าคงคลัง
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Product Info -->
+            <div class="col-span-1 md:col-span-2">
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                    <div class="flex-1">
+                        <label for="productCode" class="block text-sm font-medium text-gray-300">รหัสสินค้า (Product Code)</label>
+                        <input type="text" id="productCode" value="IN000000398" class="mt-1 block w-full p-3 dark-input rounded-lg">
+                    </div>
+                    <div class="flex-1">
+                        <label for="productName" class="block text-sm font-medium text-gray-300">ชื่อสินค้า (Product Name)</label>
+                        <input type="text" id="productName" value="Suction tip plastic [K80]" class="mt-1 block w-full p-3 dark-input rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inputs -->
+            <div>
+                <label for="soh" class="block text-sm font-medium text-gray-300">Stock On Hand (SOH - จำนวนสินค้าคงคลัง)</label>
+                <input type="number" id="soh" value="100" class="mt-1 block w-full p-3 dark-input rounded-lg" placeholder="หน่วย">
+            </div>
+            <div>
+                <label for="usage" class="block text-sm font-medium text-gray-300">Usage per Month (ปริมาณการใช้ต่อเดือน)</label>
+                <input type="number" id="usage" value="75" class="mt-1 block w-full p-3 dark-input rounded-lg" placeholder="หน่วย/เดือน">
+            </div>
+            <div>
+                <label for="lt" class="block text-sm font-medium text-gray-300">Lead Time (LT - ระยะเวลารอสินค้าปกติ, วัน)</label>
+                <input type="number" id="lt" value="12" class="mt-1 block w-full p-3 dark-input rounded-lg" placeholder="วัน">
+            </div>
+            <div>
+                <label for="bufferLt" class="block text-sm font-medium text-gray-300">Buffer LT (เผื่อการจัดส่ง/อนุมัติช้า, วัน) (ไม่บังคับ)</label>
+                <input type="number" id="bufferLt" value="5" class="mt-1 block w-full p-3 dark-input rounded-lg" placeholder="วัน">
+            </div>
+        </div>
+
+        <button onclick="calculateReorder()" class="w-full mt-6 p-4 deep-blue-purple-gradient text-white font-bold text-lg rounded-xl transition-shadow shadow-lg hover:shadow-xl">
+            คำนวณจุดสั่งซื้อและวันส่งสินค้าที่เหมาะสม
+        </button>
+
+        <!-- Results Display -->
+        <div id="results" class="mt-8 p-6 bg-gray-800 rounded-xl border border-gray-700 hidden">
+            <h3 class="text-xl font-bold text-white mb-4">ผลการคำนวณ:</h3>
+            
+            <!-- Main Grid Results -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-3 bg-gray-900 rounded-lg border-l-4 border-red-500">
+                    <p class="text-sm text-gray-400">Total Month ปัจจุบัน</p>
+                    <p class="text-xl font-extrabold text-red-400" id="totalMonthCurrent"></p>
+                </div>
+                <div class="p-3 bg-gray-900 rounded-lg border-l-4 border-cyan-500">
+                    <p class="text-sm text-gray-400">ปริมาณสั่งซื้อ (หน่วย)</p>
+                    <p class="text-xl font-extrabold text-cyan-400" id="orderQuantity"></p>
+                </div>
+                <div class="p-3 bg-gray-900 rounded-lg border-l-4 border-yellow-500">
+                    <p class="text-sm text-gray-400">วันสั่งซื้อสินค้าที่แนะนำ</p>
+                    <p class="text-lg font-bold text-yellow-400" id="orderDate"></p>
+                </div>
+                <div class="p-3 bg-gray-900 rounded-lg border-l-4 border-indigo-500">
+                    <p class="text-sm text-gray-400">วันส่งสินค้าที่คาดหวัง</p>
+                    <p class="text-lg font-bold text-indigo-400" id="deliveryDate"></p>
+                </div>
+            </div>
+            
+            <!-- Combined Total Month After Delivery and Button (New Structure) -->
+            <div class="mt-4 p-4 bg-gray-900 rounded-lg border-l-4 border-green-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <!-- Text Display (Total Month After Delivery) -->
+                <div>
+                    <!-- Updated text to show dynamic target month -->
+                    <p class="text-sm text-gray-400">Total Month หลังส่งสินค้า (เป้าหมาย <span id="targetMonthDisplay"></span> เดือน)</p>
+                    <p class="text-3xl font-extrabold text-green-400" id="postDeliveryMonth"></p>
+                </div>
+                <!-- Button -->
+                <button id="toggleDetailsBtn" onclick="toggleDetails()" class="mt-1 px-5 py-2 bg-gray-600 hover:bg-gray-700 text-white text-base font-semibold rounded-lg transition-colors flex-shrink-0 w-full sm:w-auto">
+                    รายละเอียดเพิ่มเติม
+                </button>
+            </div>
+            
+            <!-- Details Container (hidden by default) -->
+            <div id="detailMessageContainer" class="mt-4 text-sm text-gray-300 bg-gray-900 rounded-lg hidden">
+                <p id="detailMessage"></p>
+            </div>
+
+            <!-- Error/Warning Message Box -->
+            <div id="errorMessage" class="warning-box text-sm hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        // ใช้ 30.4375 วัน เป็นค่าเฉลี่ยของจำนวนวันในหนึ่งเดือน
+        const DAYS_PER_MONTH = 30.4375;
+
+        /**
+         * Helper function to format a Date object into DD-MM-YYYY format (Western Year).
+         * @param {Date} date - The date object to format.
+         * @returns {string} The formatted date string or "N/A".
+         */
+        function formatDateDDMMYYYY(date) {
+            if (!date || isNaN(date.getTime())) return "N/A";
+            const d = new Date(date);
+            // PadStart ensures 2 digits (e.g., 01, 10)
+            const day = String(d.getDate()).padStart(2, '0');
+            // getMonth() is 0-indexed, so add 1
+            const month = String(d.getMonth() + 1).padStart(2, '0'); 
+            const year = d.getFullYear(); // Gets Western year (e.g., 2025)
+            return `${day}-${month}-${year}`;
+        }
+
+        /**
+         * Helper function to add days to a Date object.
+         * @param {Date} date - The starting date.
+         * @param {number} days - The number of days to add/subtract.
+         * @returns {Date} The new Date object.
+         */
+        function addDays(date, days) {
+            const newDate = new Date(date.valueOf());
+            newDate.setDate(newDate.getDate() + days);
+            return newDate;
+        }
+        
+        /**
+         * Helper function to get difference in days (DateA - DateB).
+         * @param {Date} dateA - The later date.
+         * @param {Date} dateB - The earlier date.
+         * @returns {number} The difference in full days.
+         */
+        function dateDiffInDays(dateA, dateB) {
+            const msPerDay = 1000 * 60 * 60 * 24;
+            // Normalize dates to ensure only full day difference is counted
+            const normA = new Date(dateA.getFullYear(), dateA.getMonth(), dateA.getDate());
+            const normB = new Date(dateB.getFullYear(), dateB.getMonth(), dateB.getDate());
+            
+            return Math.round((normA.getTime() - normB.getTime()) / msPerDay);
+        }
+        
+        /**
+         * ค้นหาวันอังคาร (2) หรือวันพฤหัสบดี (4) ที่เร็วที่สุดถัดจากวันนี้ (TODAY) หรือนับรวมวันนี้
+         * @param {Date} date - วันที่เริ่มต้น (วันนี้)
+         * @returns {Date} วัน T/Th ที่เร็วที่สุดถัดไป
+         */
+        function findNextTTh(date) {
+            let i = 0;
+            
+            // JavaScript getDay(): 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+            while(true) {
+                let checkDate = addDays(date, i);
+                let dayOfWeek = checkDate.getDay();
+                if (dayOfWeek === 2 || dayOfWeek === 4) { // Tuesday (2) or Thursday (4)
+                    return checkDate;
+                }
+                i++;
+                if (i > 7) break; // Safety break
+            }
+            return date; // Fallback
+        }
+
+        /**
+         * ค้นหาวันจันทร์ (1) ที่เร็วที่สุดถัดจากวันที่กำหนด หรือเป็นวันจันทร์ถ้าวันที่กำหนดเป็นวันจันทร์อยู่แล้ว
+         * @param {Date} date - วันที่เริ่มต้น
+         * @returns {Date} วันจันทร์ถัดไปที่เร็วที่สุด
+         */
+        function findNextMonday(date) {
+            let nextDate = new Date(date.valueOf());
+            nextDate.setHours(0, 0, 0, 0); // Normalize time
+            let day = nextDate.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+            let daysToAdd = 0;
+
+            if (day !== 1) { // ถ้าไม่ใช่จันทร์ (1)
+                daysToAdd = (1 + 7 - day) % 7; 
+            }
+            
+            return addDays(nextDate, daysToAdd);
+        }
+
+        /**
+         * สลับการแสดงผลของกล่องข้อความรายละเอียด และเปลี่ยนข้อความบนปุ่ม
+         */
+        function toggleDetails() {
+            const container = document.getElementById('detailMessageContainer');
+            const button = document.getElementById('toggleDetailsBtn');
+            
+            if (container.classList.contains('hidden')) {
+                // Show with animation
+                container.classList.remove('hidden');
+                setTimeout(() => {
+                    container.classList.add('active');
+                }, 10); // Short delay for CSS transition
+                button.textContent = 'ซ่อนรายละเอียด';
+            } else {
+                // Hide with animation
+                container.classList.remove('active');
+                button.textContent = 'รายละเอียดเพิ่มเติม';
+                setTimeout(() => {
+                    container.classList.add('hidden');
+                }, 300); // Wait for transition to finish
+            }
+        }
+
+        /**
+         * ฟังก์ชันหลักในการคำนวณ
+         */
+        function calculateReorder() {
+            // ดึงค่าหลักที่บังคับ
+            const soh = parseFloat(document.getElementById('soh').value);
+            const usage = parseFloat(document.getElementById('usage').value);
+            const lt = parseInt(document.getElementById('lt').value);
+            
+            // ดึงค่า Buffer LT (ค่าทางเลือก)
+            const bufferLtInput = document.getElementById('bufferLt').value.trim();
+            let bufferLt;
+
+            const resultsDiv = document.getElementById('results');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Current time for calculation basis
+            const today = new Date(); 
+            today.setHours(0, 0, 0, 0); // Normalize time to start of day
+
+            // 1. ตรวจสอบความถูกต้องของข้อมูล
+            if (isNaN(soh) || isNaN(usage) || isNaN(lt) || usage <= 0 || soh < 0 || lt < 0) {
+                errorMessage.innerHTML = "Error: กรุณาป้อนข้อมูล **SOH, Usage, และ LT** ให้ครบถ้วนและถูกต้อง (Usage ต้องมากกว่า 0 และค่าทั้งหมดต้องไม่ติดลบ)";
+                errorMessage.classList.remove('hidden');
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            // 2. จัดการกับค่า Buffer LT
+            if (bufferLtInput === '') {
+                bufferLt = 0; // ถ้าเว้นว่าง ถือเป็น 0
+            } else {
+                const parsedBufferLt = parseInt(bufferLtInput);
+                if (isNaN(parsedBufferLt) || parsedBufferLt < 0) {
+                    errorMessage.innerHTML = "Error: ค่า **Buffer LT** ที่ป้อนต้องเป็นตัวเลขจำนวนเต็มบวก หรือเว้นว่างไว้";
+                    errorMessage.classList.remove('hidden');
+                    resultsDiv.classList.add('hidden');
+                    return;
+                }
+                bufferLt = parsedBufferLt;
+            }
+            
+            errorMessage.classList.add('hidden');
+            resultsDiv.classList.remove('hidden');
+            
+            // 3. คำนวณ Total Month คงเหลือปัจจุบัน
+            const totalMonthCurrent = soh / usage;
+            document.getElementById('totalMonthCurrent').textContent = `${totalMonthCurrent.toFixed(2)} เดือน`;
+
+            // 4. คำนวณ Total Lead Time
+            const totalLtDays = lt + bufferLt;
+            
+            // 5. **กำหนดเป้าหมาย Total Month หลังส่งสินค้าตามเงื่อนไข LT**
+            let targetPostDeliveryMonths;
+
+            if (totalLtDays >= 12 && totalLtDays <= 15) {
+                targetPostDeliveryMonths = 2.5;
+            } else if (totalLtDays > 15 && totalLtDays <= 30) {
+                targetPostDeliveryMonths = 3.0;
+            } else if (totalLtDays > 30 && totalLtDays <= 35) {
+                targetPostDeliveryMonths = 3.5;
+            } else if (totalLtDays > 35 && totalLtDays <= 65) {
+                targetPostDeliveryMonths = 4.0;
+            } else if (totalLtDays < 12) {
+                // Total LT น้อยกว่า 12 วัน
+                targetPostDeliveryMonths = 2.5; 
+            } else { // totalLtDays > 65
+                // Total LT มากกว่า 65 วัน ใช้เป้าหมายสูงสุดที่กำหนด
+                targetPostDeliveryMonths = 4.0; 
+            }
+            
+            // 6. คำนวณ วันสั่งซื้อที่แนะนำ (T/Th ถัดไปเสมอ)
+            const finalOrderDate = findNextTTh(today); 
+            finalOrderDate.setHours(0, 0, 0, 0); 
+
+            // 7. คำนวณวันส่งสินค้าเริ่มต้น (Order Date + Total LT)
+            const initialDeliveryDate = addDays(finalOrderDate, totalLtDays);
+            
+            // 8. ปรับวันส่งสินค้าให้เป็นวันจันทร์ถัดไปที่เร็วที่สุด
+            const finalDeliveryDate = findNextMonday(initialDeliveryDate);
+            const fixedDeliveryDate = finalDeliveryDate; 
+
+            // 9. คำนวณ SOH ที่เหลือในวัน Delivery
+            const daysToDelivery = dateDiffInDays(fixedDeliveryDate, today);
+            const usagePerDay = usage / DAYS_PER_MONTH;
+            const consumption = daysToDelivery * usagePerDay;
+            const sohAtDelivery = Math.max(0, soh - consumption); // SOH ไม่ต่ำกว่า 0
+
+            // 10. คำนวณปริมาณที่ต้องสั่งซื้อเพื่อให้ได้ Target Post-Delivery Months
+            const targetStockUnits = targetPostDeliveryMonths * usage;
+            let orderQty = targetStockUnits - sohAtDelivery;
+            orderQty = Math.ceil(Math.max(0, orderQty)); // ต้องสั่งซื้อจำนวนเต็ม และไม่ต่ำกว่า 0
+
+            // 11. คำนวณ Total Month หลังส่งสินค้า (เพื่อยืนยันว่าตรงตามเป้าหมาย)
+            const finalStockAfterDelivery = sohAtDelivery + orderQty;
+            const postDeliveryMonth = finalStockAfterDelivery / usage;
+
+            // 12. เตรียมข้อความรายละเอียดและแสดงผล
+            const orderDateText = formatDateDDMMYYYY(finalOrderDate);
+            const deliveryDateText = formatDateDDMMYYYY(fixedDeliveryDate);
+
+            document.getElementById('orderDate').innerHTML = orderDateText;
+            document.getElementById('deliveryDate').innerHTML = deliveryDateText;
+            document.getElementById('orderQuantity').textContent = `${orderQty.toFixed(0)} หน่วย`;
+            document.getElementById('postDeliveryMonth').textContent = `${postDeliveryMonth.toFixed(2)} เดือน`;
+            document.getElementById('targetMonthDisplay').textContent = `${targetPostDeliveryMonths.toFixed(1)}`; // Display the actual target month
+            
+            // For detail message (using Thai full format)
+            const thaiOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+            const orderDateStringThai = finalOrderDate.toLocaleDateString('th-TH', thaiOptions);
+            const deliveryDateStringThai = fixedDeliveryDate.toLocaleDateString('th-TH', thaiOptions);
+            const orderDayName = finalOrderDate.toLocaleDateString('th-TH', { weekday: 'long' });
+            const deliveryDayName = fixedDeliveryDate.toLocaleDateString('th-TH', { weekday: 'long' });
+            
+            // Recalculate Initial Delivery Date for display in details
+            const initialDeliveryDateForDisplay = addDays(finalOrderDate, totalLtDays);
+            const initialDeliveryDateStringThai = initialDeliveryDateForDisplay.toLocaleDateString('th-TH', thaiOptions);
+
+
+            let detailMessage = `**วันสั่งซื้อที่แนะนำ (T/Th ถัดไป):** ${orderDateStringThai} (${orderDayName})<br>`;
+            detailMessage += `**Total Lead Time (LT + Buffer LT):** ${totalLtDays} วัน<br>`;
+            
+            // เพิ่มข้อความอธิบายการปรับวันส่งสินค้า
+            if (initialDeliveryDateForDisplay.getDay() !== 1) { // 1 = Monday
+                detailMessage += `วันส่งสินค้าตาม Lead Time คือ ${initialDeliveryDateStringThai} แต่ถูกปรับให้เป็น **วันจันทร์** ถัดไป<br>`;
+            }
+            detailMessage += `**วันส่งสินค้าที่คาดหวัง (วันจันทร์):** ${deliveryDateStringThai} (${deliveryDayName})<br>`;
+            detailMessage += `**จำนวนวันที่รอสินค้า (นับจากวันนี้ถึงวันส่ง):** ${daysToDelivery} วัน<br>`;
+            detailMessage += `**สินค้าที่เหลือในวันส่ง (SOH-Consumption):** ${soh.toFixed(2)} - ${consumption.toFixed(2)} = ${sohAtDelivery.toFixed(2)} หน่วย<br>`;
+            
+            detailMessage += `**ปริมาณที่ต้องสั่งซื้อ** (${orderQty.toFixed(0)} หน่วย) ถูกคำนวณเพื่อให้ Total Month หลังส่งสินค้ามีค่าเป็น **${postDeliveryMonth.toFixed(2)} เดือน** (ตามเป้าหมาย **${targetPostDeliveryMonths.toFixed(1)} เดือน**)`;
+            
+            // 13. แสดงผลรายละเอียดและจัดการปุ่ม/คำเตือน
+            document.getElementById('detailMessage').innerHTML = detailMessage;
+            document.getElementById('detailMessageContainer').classList.remove('active');
+            document.getElementById('detailMessageContainer').classList.add('hidden'); 
+            document.getElementById('toggleDetailsBtn').textContent = 'รายละเอียดเพิ่มเติม'; 
+            document.getElementById('toggleDetailsBtn').classList.remove('hidden'); 
+
+            errorMessage.classList.add('hidden');
+        }
+
+        // Run calculation with default values on load
+        window.onload = function() {
+            calculateReorder();
+        };
+    </script>
+</body>
+</html>
