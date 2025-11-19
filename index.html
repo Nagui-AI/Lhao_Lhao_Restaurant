@@ -321,13 +321,13 @@
             let targetPostDeliveryMonths;
 
             if (totalLtDays >= 12 && totalLtDays <= 15) {
-                targetPostDeliveryMonths = 2.5;
+                targetPostDeliveryMonths = 2.0;
             } else if (totalLtDays > 15 && totalLtDays <= 30) {
-                targetPostDeliveryMonths = 3.0;
+                targetPostDeliveryMonths = 2.5;
             } else if (totalLtDays > 30 && totalLtDays <= 35) {
-                targetPostDeliveryMonths = 3.5;
+                targetPostDeliveryMonths = 3.0;
             } else if (totalLtDays > 35 && totalLtDays <= 65) {
-                targetPostDeliveryMonths = 4.0;
+                targetPostDeliveryMonths = 3.5;
             } else if (totalLtDays < 12) {
                 // Total LT น้อยกว่า 12 วัน
                 targetPostDeliveryMonths = 2.5; 
@@ -414,3 +414,4 @@
     </script>
 </body>
 </html>
+
