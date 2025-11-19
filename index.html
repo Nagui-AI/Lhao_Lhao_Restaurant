@@ -126,11 +126,13 @@
                 </div>
                 <div class="p-3 bg-gray-900 rounded-lg border-l-4 border-yellow-500">
                     <p class="text-xs text-gray-400">วันสั่งซื้อสินค้าที่แนะนำ</p>
-                    <p class="text-sm font-bold text-yellow-400" id="orderDate"></p>
+                    <!-- UPDATED SIZE AND WEIGHT -->
+                    <p class="text-xl font-extrabold text-yellow-400" id="orderDate"></p>
                 </div>
                 <div class="p-3 bg-gray-900 rounded-lg border-l-4 border-indigo-500">
                     <p class="text-xs text-gray-400">วันส่งสินค้าที่คาดหวัง</p>
-                    <p class="text-sm font-bold text-indigo-400" id="deliveryDate"></p>
+                    <!-- UPDATED SIZE AND WEIGHT -->
+                    <p class="text-xl font-extrabold text-indigo-400" id="deliveryDate"></p>
                 </div>
             </div>
             
@@ -428,8 +430,9 @@
 
             const resultsDiv = document.getElementById('results');
             const errorMessage = document.getElementById('errorMessage');
-            const adjustmentWarning = document.getElementById('adjustmentWarning');
-            adjustmentWarning.classList.add('hidden');
+            // Remove adjustmentWarning as the new logic is deterministic
+            const adjustmentWarning = document.getElementById('adjustmentWarning'); 
+            adjustmentWarning.classList.add('hidden'); 
             
             // Current time for calculation basis
             const today = new Date(); 
@@ -479,7 +482,7 @@
             } else if (totalLtDays > 15 && totalLtDays <= 30) {
                 targetPostDeliveryMonths = 2.5;
             } else if (totalLtDays > 30 && totalLtDays <= 35) {
-                targetPostDeliveryMonths = 3.0;
+                targetPostDeliveryMonths = 3.0; // LT 34 days falls here
             } else if (totalLtDays > 35 && totalLtDays <= 65) {
                 targetPostDeliveryMonths = 3.5;
             } else if (totalLtDays < 12) {
@@ -500,60 +503,30 @@
             
             // ** 9. NEW LOGIC: ตรวจสอบและปรับวันส่งมอบตามวันที่ห้ามส่ง (Blocked Dates) **
             let adjustmentDays = 0;
-            let fallbackUsed = false;
+            const originalFixedMonday = new Date(fixedDeliveryDate.valueOf()); 
             let adjusted = false;
-            const originalDeliveryDate = new Date(fixedDeliveryDate.valueOf()); // Store before potential adjustment (Mon)
 
             if (isBlockedDate(fixedDeliveryDate)) {
+                adjusted = true;
+                let tempDate = new Date(fixedDeliveryDate.valueOf()); 
                 
-                // RULE 1 (New): If the blocked day is a MONDAY, prioritize jumping back to the previous THURSDAY (-4 days) 
-                // This satisfies the user's specific Mon -> Thu requirement, skipping the nearest Sunday.
-                if (fixedDeliveryDate.getDay() === 1) { // 1 = Monday
-                    const potentialThursday = addDays(originalDeliveryDate, -4);
-                    // Check if the previous Thursday is not blocked
-                    if (!isBlockedDate(potentialThursday)) {
-                        fixedDeliveryDate = potentialThursday;
-                        adjustmentDays = 4;
-                        adjusted = true;
-                    }
-                }
-                
-                // RULE 2: If not adjusted by Rule 1 (either not Monday, or Thursday was also blocked),
-                // search backward for the nearest non-blocked Sunday (0) or Thursday (4).
-                if (!adjusted) {
-                    let tempDate = new Date(fixedDeliveryDate.valueOf()); 
-                    
-                    // Start searching backward from the day BEFORE the blocked date (i=1 day back)
-                    for (let i = 1; i <= 14; i++) { // Search max 14 days back for a preceding T/Su
-                        tempDate = addDays(originalDeliveryDate, -i); 
-                        const dayOfWeek = tempDate.getDay();
-                        const isTargetDay = (dayOfWeek === 0 || dayOfWeek === 4); // Sunday (0) or Thursday (4)
+                // Start searching backward from the day before the blocked date, moving backward.
+                for (let i = 1; i <= 30; i++) { // Search up to 30 days back
+                    tempDate = addDays(originalFixedMonday, -i); 
+                    const dayOfWeek = tempDate.getDay();
 
-                        if (isTargetDay) {
-                            if (!isBlockedDate(tempDate)) {
-                                // Found the nearest available preceding T/Su
-                                fixedDeliveryDate = tempDate;
-                                adjustmentDays = i;
-                                adjusted = true;
-                                break;
-                            }
+                    // Valid delivery days are Monday (1) and Thursday (4)
+                    // The user's examples show a preference for M/Th over Sunday.
+                    if (dayOfWeek === 1 || dayOfWeek === 4) { 
+                        if (!isBlockedDate(tempDate)) {
+                            // Found the nearest available preceding M or Th
+                            fixedDeliveryDate = tempDate;
+                            adjustmentDays = i;
+                            break;
                         }
                     }
                 }
-
-                // Fallback: If no T/Su was found (either blocked or missed in search), do simple backward movement.
-                if (!adjusted) {
-                    fixedDeliveryDate = new Date(originalDeliveryDate.valueOf()); // Reset to the blocked Monday/Day
-                    adjustmentDays = 0; // Recalculate days moved
-                    
-                    // Simple backward move until unblocked
-                    while (isBlockedDate(fixedDeliveryDate)) {
-                         fixedDeliveryDate = addDays(fixedDeliveryDate, -1);
-                         adjustmentDays++;
-                    }
-                    fallbackUsed = true; // Mark as fallback used
-                }
-
+                // If loop finishes without finding an unblocked M/Th, fixedDeliveryDate remains the last checked date
             }
             // -------------------------------------------------------------
             
@@ -602,7 +575,6 @@
             // Recalculate Initial Delivery Date for display in details (before Monday fix)
             const initialDeliveryDateForDisplay = addDays(finalOrderDate, totalLtDays);
             const initialDeliveryDateStringThai = initialDeliveryDateForDisplay.toLocaleDateString('th-TH', thaiOptions);
-            const originalFixedMonDateStringThai = originalDeliveryDate.toLocaleDateString('th-TH', thaiOptions);
 
             // --- DETAIL MESSAGE STRUCTURE ---
             let detailMessage = ``;
@@ -623,11 +595,14 @@
             // Step 1: Timeline and Consumption
             detailMessage += `<u>ขั้นตอนที่ 1: การคาดการณ์สินค้าคงคลัง ณ วันรับสินค้า</u><br>`;
             detailMessage += `- วันสั่งซื้อแนะนำ (T/Th ถัดไป): ${orderDateStringThai} (${orderDayName})<br>`;
+            
+            // Original Fixed Monday (before adjustment)
+            const originalFixedMonDateStringThai = originalFixedMonday.toLocaleDateString('th-TH', thaiOptions);
+            const originalFixedMonDayName = originalFixedMonday.toLocaleDateString('th-TH', { weekday: 'long' });
 
             let deliveryProcessNote = '';
-            
-            // Show Monday fix and blocked date check
-            if (dateDiffInDays(originalDeliveryDate, initialDeliveryDateForDisplay) > 0) {
+            // Determine if the initial LT delivery date was fixed to the next Monday
+            if (dateDiffInDays(originalFixedMonday, initialDeliveryDateForDisplay) > 0) {
                  deliveryProcessNote = `วันส่งสินค้าตาม LT (${initialDeliveryDateStringThai}) ถูกปรับเป็นวันจันทร์ถัดไป คือ ${originalFixedMonDateStringThai}<br>`;
             } else {
                  deliveryProcessNote = `วันส่งสินค้าตาม LT (${initialDeliveryDateStringThai}) ตรงกับวันจันทร์ที่ ${originalFixedMonDateStringThai}<br>`;
@@ -635,29 +610,14 @@
             detailMessage += `- ${deliveryProcessNote}`;
             
             // Add note about blocked date adjustment
-            if (adjustmentDays > 0) {
+            if (adjusted) { 
                 const fixedDateDayName = fixedDeliveryDate.toLocaleDateString('th-TH', { weekday: 'long' });
-                let adjustmentSource = "";
-                if (adjusted && adjustmentDays === 4 && originalDeliveryDate.getDay() === 1) {
-                    adjustmentSource = "เนื่องจากวันจันทร์ถูกบล็อก จึงปรับย้อนกลับไปหา วันพฤหัสบดี ที่ใกล้ที่สุด";
-                } else if (fallbackUsed) {
-                    adjustmentSource = "แต่เนื่องจากวันพฤหัสบดี/อาทิตย์ที่ใกล้ที่สุดก็ถูกบล็อกด้วย จึงต้องปรับย้อนหลังทีละวันแทน";
-                } else {
-                    adjustmentSource = "และถูกปรับย้อนกลับไปหา วันพฤหัสบดี/วันอาทิตย์ ที่ใกล้ที่สุดและไม่มีการบล็อก";
-                }
                 
-                 detailMessage += `<span class="text-red-400 font-bold">** การปรับเงื่อนไข:</span> วันที่ ${originalFixedMonDateStringThai} ตรงกับวันที่ห้ามส่ง! ${adjustmentSource}<br>`;
-                 detailMessage += `- วันรับสินค้าสุดท้าย: <b>${deliveryDateStringThai} (${fixedDateDayName})</b> (ปรับย้อนหลัง ${adjustmentDays} วัน)<br>`;
+                detailMessage += `<span class="text-red-400 font-bold">** การปรับเงื่อนไข:</span> วันที่ ${originalFixedMonDateStringThai} (${originalFixedMonDayName}) ตรงกับวันที่ห้ามส่ง!<br>`;
+                detailMessage += `- ระบบจึงค้นหาวันส่งสินค้าที่ว่างย้อนหลัง โดยมีลำดับความสำคัญคือ **วันจันทร์ (Mon)** และ **วันพฤหัสบดี (Thu)**<br>`;
+                detailMessage += `- วันรับสินค้าสุดท้ายที่ปรับแล้ว: <b>${deliveryDateStringThai} (${fixedDateDayName})</b> (ปรับย้อนหลัง ${adjustmentDays} วัน)<br>`;
                  
-                 if (fallbackUsed) {
-                    adjustmentWarning.textContent = "คำเตือน: วันที่ห้ามส่งสินค้าที่ระบุไว้ บล็อกทั้งวันจันทร์ และวันพฤหัสบดี/อาทิตย์ที่ใกล้ที่สุดก่อนหน้า! ระบบจึงจำเป็นต้องปรับย้อนหลังทีละวันแทน";
-                    adjustmentWarning.classList.remove('hidden');
-                 }
-            } else {
-                const fixedDateDayName = fixedDeliveryDate.toLocaleDateString('th-TH', { weekday: 'long' });
-                detailMessage += `- วันรับสินค้าสุดท้าย: <b>${deliveryDateStringThai} (${fixedDateDayName})</b><br>`;
-            }
-
+            } 
 
             detailMessage += `- จำนวนวันรอสินค้า (จากวันนี้ถึงวันรับของ): <b>${daysToDelivery} วัน</b><br>`;
             detailMessage += `- ปริมาณที่ใช้ไประหว่างรอ: (${usage.toFixed(2)} / ${DAYS_PER_MONTH.toFixed(2)} วัน) x ${daysToDelivery} วัน = ${consumption.toFixed(2)} หน่วย<br>`;
