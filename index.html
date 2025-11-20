@@ -3,164 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>จองโต๊ะอาหาร - มั่งคั่งโภชนา</title>
+    <title>จองโต๊ะ - มั่งคั่งโภชนา</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prata&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Reset ค่าพื้นฐานทั้งหมด เพื่อให้เหมือนกันทุกจอ */
-        * {
-            box-sizing: border-box; /* รวมขอบและ padding เข้าไปใน width ไม่ให้ทะลุ */
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent; /* ลบสีไฮไลท์เวลาแตะบนมือถือ */
-        }
-
+        /* Reset & Base */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
         :root {
-            --primary-color: #8B4513; /* SaddleBrown - เข้มขึ้นเล็กน้อยให้อ่านง่าย */
-            --accent-color: #D2691E; /* Chocolate */
-            --bg-color: #FAF0E6; /* Linen - ครีมอ่อนๆ แบบกระดาษสา */
-            --input-bg: #FFF8DC; /* Cornsilk - พื้นหลังช่องกรอก */
-            --text-color: #4A4A4A;
-            --border-radius: 12px;
+            /* Color Palette: Earthy & Golden Thai-Chinese */
+            --bg-page: #F9F7F2;       /* ครีมไข่ไก่ */
+            --bg-card: #FFFFFF;       /* ขาว */
+            --primary: #8B4513;       /* น้ำตาลไหม้ */
+            --gold: #C5A059;          /* ทองด้าน (ไม่ฉูดฉาด) */
+            --text-main: #2C2C2C;     /* ดำเทา */
+            --text-muted: #888888;
+            --border-light: #EFEFEF;
         }
 
         body {
             font-family: 'Sarabun', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--bg-page);
+            background-image: radial-gradient(#E6DCCD 1px, transparent 1px);
+            background-size: 20px 20px; /* ลายจุดจางๆ ให้ดูมี Texture */
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            background: white;
-            width: 100%;
-            max-width: 420px; /* จำกัดความกว้างไม่ให้ยืดเกินไปบน iPad */
-            padding: 30px 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(139, 69, 19, 0.1); /* เงาสีนุ่มๆ */
-            border: 1px solid rgba(139, 69, 19, 0.1);
+            background: var(--bg-card);
+            /* Fluid Width: ยืดหยุ่นตามจอ แต่ไม่เกิน 500px */
+            width: 100%; 
+            max-width: 500px;
+            
+            /* Fluid Padding: ขอบข้างจะกว้างขึ้นเมื่อจอใหญ่ขึ้น */
+            padding: clamp(25px, 5vw, 40px);
+            
+            border-radius: 20px;
+            /* Soft Shadow: เงาฟุ้งๆ ให้ดูลอยออกมา */
+            box-shadow: 0 20px 40px -10px rgba(139, 69, 19, 0.15);
+            border-top: 5px solid var(--primary); /* เส้นสีน้ำตาลด้านบน */
+            position: relative;
         }
 
-        /* หัวข้อร้าน */
+        /* Typography Design */
         h2 {
             text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 10px;
+            /* Fluid Font Size: เล็กสุด 24px, ใหญ่สุด 32px ตามขนาดจอ */
+            font-size: clamp(24px, 5vw, 32px); 
+            color: var(--primary);
             font-weight: 600;
-            font-size: 1.6rem;
-            letter-spacing: 1px;
+            margin-bottom: 5px;
         }
         
         .subtitle {
             text-align: center;
-            color: #8c8c8c;
-            margin-bottom: 30px;
-            font-size: 0.9rem;
+            font-size: clamp(14px, 3vw, 16px);
+            color: var(--text-muted);
+            margin-bottom: clamp(20px, 4vw, 35px);
+            font-weight: 300;
+        }
+        
+        .divider {
+            height: 1px;
+            width: 50px;
+            background-color: var(--gold);
+            margin: 10px auto 25px;
         }
 
-        /* จัดระเบียบฟอร์ม */
+        /* Form Elements */
         .form-group {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: clamp(15px, 3vw, 20px);
         }
 
-        /* ไอคอนในช่อง */
         .form-group i {
             position: absolute;
-            left: 16px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--primary-color);
+            color: var(--gold);
             font-size: 1.1rem;
-            z-index: 10; /* ให้อยู่เหนือพื้นหลัง input */
-            pointer-events: none; /* ให้กดทะลุไอคอนไปโดน input ได้ */
+            pointer-events: none;
         }
 
-        /* ช่องกรอกข้อมูล (Input) */
         input, select {
-            width: 100%; /* เต็มความกว้าง container เสมอ */
-            padding: 14px 14px 14px 50px; /* เว้นซ้ายไว้ใส่ไอคอน */
-            border: 1.5px solid #E0D6CC;
-            border-radius: var(--border-radius);
-            background-color: var(--input-bg);
+            width: 100%;
+            padding: 15px 15px 15px 50px; /* เว้นที่ให้ไอคอน */
+            
+            /* Fluid Font for Inputs: อ่านง่ายทุกจอ */
+            font-size: clamp(16px, 2vw, 17px); 
             font-family: 'Sarabun', sans-serif;
-            font-size: 16px; /* ขนาด 16px ป้องกัน iPhone ซูมเอง */
-            color: #333;
-            appearance: none; /* ลบสไตล์เดิมของ iOS */
-            -webkit-appearance: none;
+            
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            background-color: #FAFAFA;
+            color: var(--text-main);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            appearance: none;
+        }
+
+        /* Interaction Effects */
+        input:focus, select:focus {
             outline: none;
+            border-color: var(--gold);
+            background-color: #FFF;
+            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.2);
+            transform: translateY(-2px); /* ลอยขึ้นนิดนึงตอนพิมพ์ */
+        }
+
+        /* Custom Select Arrow */
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23C5A059' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 18px;
+        }
+
+        /* Flex Layout for Date/Time */
+        .row-fluid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap; /* ยอมให้ตกบรรทัดถ้านิ้วเบียด */
+        }
+        .row-fluid .form-group {
+            flex: 1 1 45%; /* ขยายเต็มที่ แต่ถ้าจอเล็กมากจะกินพื้นที่ 100% */
+        }
+
+        /* Button Design */
+        button {
+            width: 100%;
+            padding: 18px;
+            margin-top: 10px;
+            
+            background: linear-gradient(135deg, var(--primary) 0%, #A0522D 100%);
+            color: white;
+            
+            font-size: clamp(16px, 2.5vw, 18px);
+            font-weight: 600;
+            letter-spacing: 1px;
+            
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(139, 69, 19, 0.2);
             transition: all 0.3s ease;
         }
 
-        /* แก้ไขบั๊ก Select บน Android/PC ให้มีลูกศร */
-        select {
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B4513' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 16px;
-        }
-
-        /* สถานะตอนกดเลือกช่อง */
-        input:focus, select:focus {
-            border-color: var(--accent-color);
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(210, 105, 30, 0.1);
-        }
-
-        /* ปุ่มกด (Button) */
-        button {
-            width: 100%;
-            padding: 16px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.1s, background-color 0.3s;
-            margin-top: 10px;
-        }
-
         button:active {
-            transform: scale(0.98); /* ย่อลงนิดนึงตอนกด ให้ความรู้สึกว่ากดโดนแล้ว */
+            transform: scale(0.98);
+            box-shadow: 0 5px 10px rgba(139, 69, 19, 0.2);
         }
-
-        /* Loading & Status */
+        
+        /* Status Messages */
         .status-message {
-            margin-top: 20px;
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 15px;
             text-align: center;
-            font-size: 0.95rem;
             display: none;
-            padding: 10px;
-            border-radius: 8px;
+            animation: fadeIn 0.5s ease;
         }
-        .loading { color: #666; background: #f0f0f0; }
-        .success { color: #155724; background: #d4edda; }
-        .error { color: #721c24; background: #f8d7da; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .loading { background: #f3f3f3; color: #666; border-left: 4px solid #999; }
+        .success { background: #f0fff4; color: #276749; border-left: 4px solid #48bb78; }
+        .error { background: #fff5f5; color: #c53030; border-left: 4px solid #f56565; }
 
-        /* Media Query: ปรับแต่งสำหรับหน้าจอเล็กมาก (iPhone SE หรือเก่ากว่า) */
-        @media (max-width: 375px) {
-            .container { padding: 20px 15px; }
-            input, select { font-size: 14px; padding-left: 45px; }
-            .form-group i { font-size: 1rem; left: 14px; }
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2><i class="fas fa-utensils" style="margin-right:8px;"></i> มั่งคั่งโภชนา</h2>
-    <p class="subtitle">จองโต๊ะออนไลน์ สะดวก รวดเร็ว</p>
+    <h2>มั่งคั่งโภชนา</h2>
+    <div class="divider"></div>
+    <p class="subtitle">จองโต๊ะออนไลน์ สไตล์ไทย-จีน ร่วมสมัย</p>
 
     <form id="bookingForm">
         <div class="form-group">
@@ -169,85 +194,92 @@
         </div>
         
         <div class="form-group">
-            <i class="fas fa-phone-alt"></i>
-            <input type="tel" name="Phone" placeholder="เบอร์โทรติดต่อ" required pattern="[0-9]{9,10}" autocomplete="tel">
+            <i class="fas fa-mobile-alt"></i>
+            <input type="tel" name="Phone" placeholder="เบอร์โทรศัพท์" required pattern="[0-9]{9,10}" autocomplete="tel">
         </div>
         
-        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-            <div class="form-group" style="flex: 1 1 140px;">
-                <i class="fas fa-calendar-day"></i>
-                <input type="date" name="Date" required placeholder="วันที่">
+        <div class="row-fluid">
+            <div class="form-group">
+                <i class="far fa-calendar"></i>
+                <input type="date" name="Date" required>
             </div>
             
-            <div class="form-group" style="flex: 1 1 120px;">
-                <i class="fas fa-clock"></i>
-                <input type="time" name="Time" required placeholder="เวลา">
+            <div class="form-group">
+                <i class="far fa-clock"></i>
+                <input type="time" name="Time" required>
             </div>
         </div>
         
         <div class="form-group">
-            <i class="fas fa-user-friends"></i>
+            <i class="fas fa-users"></i>
             <select name="Guests" required>
-                <option value="" disabled selected>จำนวนกี่ท่าน?</option>
+                <option value="" disabled selected>จำนวนลูกค้า</option>
                 <option value="1">1 ท่าน</option>
                 <option value="2">2 ท่าน</option>
                 <option value="3-4">3-4 ท่าน</option>
                 <option value="5-6">5-6 ท่าน</option>
                 <option value="7-10">7-10 ท่าน</option>
-                <option value="More">มากกว่า 10 ท่าน</option>
+                <option value="More">มากกว่า 10 ท่าน (กรุณาโทรจอง)</option>
             </select>
         </div>
         
-        <button type="submit">ยืนยันการจอง</button>
+        <button type="submit">ยืนยันการจองโต๊ะ</button>
     </form>
-    
+
     <div id="statusMessage" class="status-message"></div>
 </div>
 
 <script>
-    // *** เปลี่ยน URL ของคุณตรงนี้ ***
+    // ลิงก์ Google Apps Script เดิมของคุณ
     const scriptURL = 'https://script.google.com/macros/s/AKfycbw5Fn--MhdQOGrN2-zYcG1WxZR9i6k1mtjsKzFvGtes-jBAytUP73XEG4CoDKHkNKOD/exec'; 
     
     const form = document.forms['bookingForm'];
     const statusMsg = document.getElementById('statusMessage');
+    const btn = form.querySelector('button');
+    const originalBtnText = btn.innerHTML;
 
     form.addEventListener('submit', e => {
         e.preventDefault();
         
-        // แสดง Loading
+        // UI State: Loading
         statusMsg.style.display = 'block';
         statusMsg.className = 'status-message loading';
-        statusMsg.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> กำลังบันทึกข้อมูล...';
-        
-        // ปิดปุ่มกดป้องกันการกดซ้ำ
-        const btn = form.querySelector('button');
-        const originalText = btn.innerText;
+        statusMsg.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> กำลังส่งข้อมูล...';
         btn.disabled = true;
-        btn.innerText = 'กำลังส่ง...';
-
+        btn.innerHTML = 'กำลังบันทึก...';
+        
         fetch(scriptURL, { method: 'POST', body: new FormData(form)})
             .then(response => response.json())
             .then(data => {
                 if (data.result === 'success') {
                     statusMsg.className = 'status-message success';
-                    statusMsg.innerHTML = '<i class="fas fa-check-circle"></i> จองสำเร็จ! ทางร้านได้รับข้อมูลแล้ว';
+                    statusMsg.innerHTML = '<i class="fas fa-check-circle"></i> <b>จองสำเร็จ!</b><br>ทางร้านได้รับข้อมูลเรียบร้อยแล้วครับ';
                     form.reset();
+                    // ตั้งวันที่เป็นวันปัจจุบันอีกครั้งเพื่อความสะดวก
+                    document.querySelector('input[type="date"]').valueAsDate = new Date();
                 } else {
                     throw new Error(data.error);
                 }
             })
             .catch(error => {
                 statusMsg.className = 'status-message error';
-                statusMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> เกิดข้อผิดพลาด กรุณาลองใหม่';
+                statusMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <b>เกิดข้อผิดพลาด</b><br>กรุณาลองใหม่อีกครั้ง';
+                console.error('Error!', error.message);
             })
             .finally(() => {
-                // คืนค่าปุ่ม
                 btn.disabled = false;
-                btn.innerText = originalText;
-                // ซ่อนข้อความเมื่อผ่านไป 5 วิ
-                setTimeout(() => { statusMsg.style.display = 'none'; }, 5000);
+                btn.innerHTML = originalBtnText;
+                // ซ่อนข้อความสำเร็จหลังจาก 6 วินาที
+                if(statusMsg.classList.contains('success')) {
+                    setTimeout(() => { 
+                        statusMsg.style.display = 'none'; 
+                    }, 6000);
+                }
             });
     });
+
+    // Set default date to today (Optionally)
+    // document.querySelector('input[type="date"]').valueAsDate = new Date();
 </script>
 
 </body>
