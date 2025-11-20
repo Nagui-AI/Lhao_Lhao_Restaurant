@@ -2,234 +2,210 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>จองโต๊ะกับ Lhao Lhao</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>จองโต๊ะอาหาร - มั่งคั่งโภชนา</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
+        /* Reset ค่าพื้นฐานทั้งหมด เพื่อให้เหมือนกันทุกจอ */
+        * {
+            box-sizing: border-box; /* รวมขอบและ padding เข้าไปใน width ไม่ให้ทะลุ */
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent; /* ลบสีไฮไลท์เวลาแตะบนมือถือ */
+        }
+
         :root {
-            --primary-color: #A0522D; /* Sienna - Warm Brown */
-            --secondary-color: #F5DEB3; /* Wheat - Light Cream */
-            --text-dark: #333;
-            --text-light: #555;
-            --bg-light: #FDF5E6; /* Old Lace - Very light cream */
-            --border-color: #D2B48C; /* Tan - Muted Brown */
-            --success-color: #28a745;
-            --error-color: #dc3545;
+            --primary-color: #8B4513; /* SaddleBrown - เข้มขึ้นเล็กน้อยให้อ่านง่าย */
+            --accent-color: #D2691E; /* Chocolate */
+            --bg-color: #FAF0E6; /* Linen - ครีมอ่อนๆ แบบกระดาษสา */
+            --input-bg: #FFF8DC; /* Cornsilk - พื้นหลังช่องกรอก */
+            --text-color: #4A4A4A;
+            --border-radius: 12px;
         }
 
         body {
             font-family: 'Sarabun', sans-serif;
-            background-color: var(--bg-light);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Adjust alignment for better mobile view */
+            align-items: center;
             min-height: 100vh;
-            margin: 0;
-            padding: 20px; /* Add padding for mobile view */
-            box-sizing: border-box;
-            color: var(--text-dark);
+            padding: 20px;
         }
 
         .container {
             background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
             width: 100%;
-            max-width: 450px; /* Slightly wider for better form layout */
-            box-sizing: border-box;
-            margin-top: 20px; /* Push down slightly from top on mobile */
+            max-width: 420px; /* จำกัดความกว้างไม่ให้ยืดเกินไปบน iPad */
+            padding: 30px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(139, 69, 19, 0.1); /* เงาสีนุ่มๆ */
+            border: 1px solid rgba(139, 69, 19, 0.1);
         }
 
+        /* หัวข้อร้าน */
         h2 {
             text-align: center;
             color: var(--primary-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #8c8c8c;
             margin-bottom: 30px;
-            font-weight: 700;
-            font-size: 1.8em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        h2 i {
-            margin-right: 10px;
-            color: var(--primary-color);
+            font-size: 0.9rem;
         }
 
+        /* จัดระเบียบฟอร์ม */
         .form-group {
-            margin-bottom: 18px;
-            position: relative; /* For icon positioning */
+            position: relative;
+            margin-bottom: 20px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 400;
-            color: var(--text-light);
-            font-size: 0.95em;
-        }
-
-        input[type="text"],
-        input[type="tel"],
-        input[type="date"],
-        input[type="time"],
-        select {
-            width: calc(100% - 24px); /* Account for padding */
-            padding: 12px 12px 12px 40px; /* Left padding for icon */
-            margin: 0;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-family: 'Sarabun', sans-serif;
-            font-size: 1em;
-            color: var(--text-dark);
-            transition: border-color 0.3s ease;
-            background-color: var(--secondary-color); /* Light background for input */
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(160, 82, 45, 0.2); /* Light primary glow */
-        }
-
+        /* ไอคอนในช่อง */
         .form-group i {
             position: absolute;
-            left: 15px;
-            top: 60%; /* Adjust based on label + input height */
+            left: 16px;
+            top: 50%;
             transform: translateY(-50%);
             color: var(--primary-color);
-            pointer-events: none; /* Make icon not interfere with input */
+            font-size: 1.1rem;
+            z-index: 10; /* ให้อยู่เหนือพื้นหลัง input */
+            pointer-events: none; /* ให้กดทะลุไอคอนไปโดน input ได้ */
         }
 
-        /* Adjust icon position for inputs with labels */
-        .form-group input + i, .form-group select + i {
-            top: calc(50% + 10px); /* 10px is roughly half of label height + padding */
+        /* ช่องกรอกข้อมูล (Input) */
+        input, select {
+            width: 100%; /* เต็มความกว้าง container เสมอ */
+            padding: 14px 14px 14px 50px; /* เว้นซ้ายไว้ใส่ไอคอน */
+            border: 1.5px solid #E0D6CC;
+            border-radius: var(--border-radius);
+            background-color: var(--input-bg);
+            font-family: 'Sarabun', sans-serif;
+            font-size: 16px; /* ขนาด 16px ป้องกัน iPhone ซูมเอง */
+            color: #333;
+            appearance: none; /* ลบสไตล์เดิมของ iOS */
+            -webkit-appearance: none;
+            outline: none;
+            transition: all 0.3s ease;
         }
 
+        /* แก้ไขบั๊ก Select บน Android/PC ให้มีลูกศร */
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B4513' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+        }
 
+        /* สถานะตอนกดเลือกช่อง */
+        input:focus, select:focus {
+            border-color: var(--accent-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(210, 105, 30, 0.1);
+        }
+
+        /* ปุ่มกด (Button) */
         button {
             width: 100%;
-            padding: 15px;
-            margin-top: 25px;
+            padding: 16px;
             background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 1.1em;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s, background-color 0.3s;
+            margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #8B4513; /* Darker Sienna */
-            transform: translateY(-2px);
+        button:active {
+            transform: scale(0.98); /* ย่อลงนิดนึงตอนกด ให้ความรู้สึกว่ากดโดนแล้ว */
         }
 
+        /* Loading & Status */
         .status-message {
-            display: none;
-            text-align: center;
             margin-top: 20px;
-            padding: 15px;
+            text-align: center;
+            font-size: 0.95rem;
+            display: none;
+            padding: 10px;
             border-radius: 8px;
-            font-weight: 400;
         }
+        .loading { color: #666; background: #f0f0f0; }
+        .success { color: #155724; background: #d4edda; }
+        .error { color: #721c24; background: #f8d7da; }
 
-        .status-message.loading {
-            background-color: #e9ecef;
-            color: var(--text-light);
-        }
-        .status-message.success {
-            background-color: #d4edda;
-            color: var(--success-color);
-        }
-        .status-message.error {
-            background-color: #f8d7da;
-            color: var(--error-color);
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 600px) {
-            body {
-                padding: 15px;
-                align-items: flex-start;
-            }
-            .container {
-                padding: 25px;
-                margin-top: 15px;
-                border-radius: 10px;
-            }
-            h2 {
-                font-size: 1.6em;
-                margin-bottom: 25px;
-            }
-            input, select, button {
-                padding: 12px 12px 12px 40px;
-                font-size: 0.95em;
-            }
-            button {
-                padding: 14px;
-                font-size: 1em;
-            }
+        /* Media Query: ปรับแต่งสำหรับหน้าจอเล็กมาก (iPhone SE หรือเก่ากว่า) */
+        @media (max-width: 375px) {
+            .container { padding: 20px 15px; }
+            input, select { font-size: 14px; padding-left: 45px; }
+            .form-group i { font-size: 1rem; left: 14px; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2><i class="fas fa-utensils"></i> Lhao Lhao</h2>
-    <p style="text-align: center; color: var(--text-light); margin-top: -15px; margin-bottom: 30px;">
-        จองโต๊ะเพื่อประสบการณ์อาหารเลิศรสในแบบฉบับไทย-จีน
-    </p>
+    <h2><i class="fas fa-utensils" style="margin-right:8px;"></i> มั่งคั่งโภชนา</h2>
+    <p class="subtitle">จองโต๊ะออนไลน์ สะดวก รวดเร็ว</p>
 
     <form id="bookingForm">
         <div class="form-group">
             <i class="fas fa-user"></i>
-            <input type="text" name="Name" placeholder="ชื่อ-นามสกุล" required>
+            <input type="text" name="Name" placeholder="ชื่อผู้จอง" required autocomplete="name">
         </div>
         
         <div class="form-group">
-            <i class="fas fa-phone"></i>
-            <input type="tel" name="Phone" placeholder="เบอร์โทรศัพท์ (เช่น 08XXXXXXXX)" required pattern="[0-9]{10}">
+            <i class="fas fa-phone-alt"></i>
+            <input type="tel" name="Phone" placeholder="เบอร์โทรติดต่อ" required pattern="[0-9]{9,10}" autocomplete="tel">
+        </div>
+        
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <div class="form-group" style="flex: 1 1 140px;">
+                <i class="fas fa-calendar-day"></i>
+                <input type="date" name="Date" required placeholder="วันที่">
+            </div>
+            
+            <div class="form-group" style="flex: 1 1 120px;">
+                <i class="fas fa-clock"></i>
+                <input type="time" name="Time" required placeholder="เวลา">
+            </div>
         </div>
         
         <div class="form-group">
-            <i class="fas fa-calendar-alt"></i>
-            <input type="date" name="Date" required>
-        </div>
-        
-        <div class="form-group">
-            <i class="fas fa-clock"></i>
-            <input type="time" name="Time" required>
-        </div>
-        
-        <div class="form-group">
-            <i class="fas fa-users"></i>
+            <i class="fas fa-user-friends"></i>
             <select name="Guests" required>
-                <option value="" disabled selected>จำนวนลูกค้า</option>
+                <option value="" disabled selected>จำนวนกี่ท่าน?</option>
                 <option value="1">1 ท่าน</option>
                 <option value="2">2 ท่าน</option>
                 <option value="3-4">3-4 ท่าน</option>
                 <option value="5-6">5-6 ท่าน</option>
                 <option value="7-10">7-10 ท่าน</option>
-                <option value="More than 10">มากกว่า 10 ท่าน</option>
+                <option value="More">มากกว่า 10 ท่าน</option>
             </select>
         </div>
         
-        <button type="submit">ยืนยันการจองโต๊ะ</button>
+        <button type="submit">ยืนยันการจอง</button>
     </form>
-
+    
     <div id="statusMessage" class="status-message"></div>
 </div>
 
 <script>
-    // *** ใส่ URL ของ Google Apps Script ที่ได้มาตรงนี้ ***
+    // *** เปลี่ยน URL ของคุณตรงนี้ ***
     const scriptURL = 'https://script.google.com/macros/s/AKfycbw5Fn--MhdQOGrN2-zYcG1WxZR9i6k1mtjsKzFvGtes-jBAytUP73XEG4CoDKHkNKOD/exec'; 
     
     const form = document.forms['bookingForm'];
@@ -237,31 +213,39 @@
 
     form.addEventListener('submit', e => {
         e.preventDefault();
+        
+        // แสดง Loading
         statusMsg.style.display = 'block';
         statusMsg.className = 'status-message loading';
-        statusMsg.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล... โปรดรอสักครู่';
+        statusMsg.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> กำลังบันทึกข้อมูล...';
         
+        // ปิดปุ่มกดป้องกันการกดซ้ำ
+        const btn = form.querySelector('button');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = 'กำลังส่ง...';
+
         fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-            .then(response => response.json()) // รับ response เป็น JSON
+            .then(response => response.json())
             .then(data => {
                 if (data.result === 'success') {
                     statusMsg.className = 'status-message success';
-                    statusMsg.innerHTML = '<i class="fas fa-check-circle"></i> ขอบคุณครับ! การจองโต๊ะสำเร็จเรียบร้อยแล้ว';
+                    statusMsg.innerHTML = '<i class="fas fa-check-circle"></i> จองสำเร็จ! ทางร้านได้รับข้อมูลแล้ว';
                     form.reset();
                 } else {
-                    throw new Error(data.error || 'Unknown error');
+                    throw new Error(data.error);
                 }
             })
             .catch(error => {
-                console.error('Error!', error.message);
                 statusMsg.className = 'status-message error';
-                statusMsg.innerHTML = '<i class="fas fa-times-circle"></i> เกิดข้อผิดพลาดในการจอง โปรดลองใหม่อีกครั้ง หรือติดต่อร้านโดยตรง';
+                statusMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> เกิดข้อผิดพลาด กรุณาลองใหม่';
             })
             .finally(() => {
-                // ซ่อนข้อความสถานะหลังจาก 5 วินาที
-                setTimeout(() => {
-                    statusMsg.style.display = 'none';
-                }, 5000);
+                // คืนค่าปุ่ม
+                btn.disabled = false;
+                btn.innerText = originalText;
+                // ซ่อนข้อความเมื่อผ่านไป 5 วิ
+                setTimeout(() => { statusMsg.style.display = 'none'; }, 5000);
             });
     });
 </script>
